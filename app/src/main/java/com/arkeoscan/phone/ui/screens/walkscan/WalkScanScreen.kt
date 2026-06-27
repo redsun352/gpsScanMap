@@ -23,13 +23,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
@@ -47,9 +50,48 @@ fun WalkScanScreen(
     val routeLatLng = uiState.routePoints.map { LatLng(it.latitude, it.longitude) }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
-            routeLatLng.lastOrNull() ?: LatLng(38.514, 35.786), // Kayseri varsayılan
+            LatLng(38.514, 35.786), // Kayseri varsayılan, gerçek konum gelene kadar
             17f
         )
+    }
+
+    // rememberCameraPositionState{} bloğu yalnızca ilk composition'da çalışır;
+    // yeni GPS noktaları geldiğinde kamerayı buraya taşımak için LaunchedEffect gerekir.
+    // routeLatLng.lastOrNull() değiştiğinde (yeni konum eklendiğinde) tetiklenir.
+    // STOPPED durumunda (polygon oluştuktan sonra) bu efekt artık tetiklenmesin diye
+    // sadece RUNNING/PAUSED iken takip yapılır.
+    LaunchedEffect(routeLatLng.lastOrNull(), uiState.state) {
+        if (uiState.state == WalkScanState.RUNNING || uiState.state == WalkScanState.PAUSED) {
+            routeLatLng.lastOrNull()?.let { latestPoint ->
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngZoom(latestPoint, 19f)
+                )
+            }
+        }
+    }
+
+    // Tarama tamamlanıp Polygon oluştuğunda, kamerayı tüm Polygon'u kapsayacak
+    // şekilde otomatik zoom/pan yapar — küçük alanlarda (örn. balkon testi) polygon'un
+    // net görünmesini sağlar.
+    LaunchedEffect(uiState.polygon) {
+        uiState.polygon?.let { polygon ->
+            val polygonLatLng = polygon.vertices.map { LatLng(it.latitude, it.longitude) }
+            if (polygonLatLng.isNotEmpty()) {
+                val boundsBuilder = LatLngBounds.Builder()
+                polygonLatLng.forEach { boundsBuilder.include(it) }
+                try {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100)
+                    )
+                } catch (e: Exception) {
+                    // Tek nokta gibi dejenere durumlarda newLatLngBounds hata verebilir;
+                    // bu durumda basit bir nokta+zoom'a düş.
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(polygonLatLng.first(), 19f)
+                    )
+                }
+            }
+        }
     }
 
     Scaffold(
