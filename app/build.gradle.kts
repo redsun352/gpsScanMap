@@ -38,6 +38,10 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        // Material3'ün TopAppBar, AssistChip, FilterChip gibi bileşenleri
+        // @ExperimentalMaterial3Api ile işaretli; bu opt-in olmadan derleme
+        // "This material API is experimental" hatasıyla FAILED olur.
+        freeCompilerArgs += listOf("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
     }
 
     buildFeatures {
@@ -88,6 +92,12 @@ dependencies {
 
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
+
+    // PreviewView sınıfı (CameraSurveyScreen/ViewModel'de doğrudan kullanılıyor) için
+    // camera-view bağımlılığı app modülüne de eklenmeli; core-camera'daki implementation
+    // bağımlılığı transitif olarak app'a sızmaz.
+    implementation(libs.camera.view)
+    implementation(libs.camera.core)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
