@@ -60,7 +60,7 @@ data class AnomalyResultEntity(
             entity = ScanSessionEntity::class,
             parentColumns = ["id"],
             childColumns = ["session_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [Index("session_id")]
@@ -69,8 +69,13 @@ data class CameraSurveyPhotoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
+    // Nullable: Camera Survey, aktif bir Walk Scan oturumu olmadan da bağımsız
+    // kullanılabilir (örn. kullanıcı doğrudan Camera Survey ekranına girip
+    // herhangi bir tarama başlatmadan fotoğraf çekebilir). Foreign key kısıtı
+    // bu yüzden null değeri kabul eder; 0L gibi var olmayan bir session id
+    // kullanmak SQLITE_CONSTRAINT_FOREIGNKEY hatasına yol açardı.
     @ColumnInfo(name = "session_id")
-    val sessionId: Long,
+    val sessionId: Long?,
 
     @ColumnInfo(name = "file_path")
     val filePath: String,
