@@ -1,0 +1,9 @@
+<resources>
+    <color name="background_primary">#0A0A0C</color>
+    <color name="surface_card">#16161A</color>
+    <color name="accent_primary">#00D9C0</color>
+    <color name="accent_secondary">#FF8A3D</color>
+    <color name="text_primary">#F2F2F3</color>
+    <color name="text_secondary">#9A9AA2</color>
+    <color name="warning_amber">#FFB020</color>
+</resources>
