@@ -42,7 +42,7 @@ class CameraSurveyCapture @Inject constructor(
         cameraProvider = provider
 
         val preview = Preview.Builder().build().also {
-            it.surfaceProvider = previewView.surfaceProvider
+            it.setSurfaceProvider(previewView.surfaceProvider)
         }
 
         val capture = ImageCapture.Builder()
