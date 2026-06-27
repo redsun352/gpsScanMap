@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,9 +70,7 @@ class LocationTracker @Inject constructor(
     @SuppressLint("MissingPermission")
     suspend fun getLastKnownLocation(): GeoPoint? {
         return try {
-            val location = fusedClient.lastLocation.let { task ->
-                kotlinx.coroutines.tasks.await(task)
-            }
+            val location = fusedClient.lastLocation.await()
             location?.let {
                 GeoPoint(
                     latitude = it.latitude,

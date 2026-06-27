@@ -28,7 +28,7 @@ object DatabaseModule {
             ArkeoScanDatabase.DATABASE_NAME
         )
             // Saha aracı: şema değişikliklerinde veri kaybı kabul edilebilir (henüz prod değil).
-            .fallbackToDestructiveMigration(true)
+            .fallbackToDestructiveMigration()
             .build()
     }
 
