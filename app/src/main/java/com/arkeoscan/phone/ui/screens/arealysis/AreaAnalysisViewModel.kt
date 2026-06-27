@@ -57,21 +57,36 @@ class AreaAnalysisViewModel @Inject constructor(
         loadLatestSession()
     }
 
-    private fun loadLatestSession() {
+    /**
+     * Ekran her açıldığında (örn. Walk Scan'den geri dönüldüğünde) en güncel
+     * oturumu tekrar yükler. Önce aktif (RUNNING/PAUSED) oturum aranır, yoksa
+     * en son oluşturulan oturuma (durum STOPPED dahil) düşülür — çünkü Walk
+     * Scan'de STOP'a basıldığında oturumun durumu STOPPED'a geçer ve
+     * getActiveSession() artık onu görmez.
+     */
+    fun loadLatestSession() {
         viewModelScope.launch {
-            val session = scanSessionDao.getActiveSession() ?: run {
-                // Aktif oturum yoksa, en son tamamlanmış (STOPPED) oturumu da bulmaya çalışabiliriz;
-                // basitlik için burada şimdilik sadece aktif/duraklatılmış oturum aranıyor,
-                // observeAll() Flow'undan UI katmanı liste de gösterebilir.
-                null
-            }
-            session?.polygon()?.let { polygon ->
+            val session = scanSessionDao.getActiveSession()
+                ?: scanSessionDao.getMostRecentSession()
+
+            if (session?.polygonWkt != null) {
+                session.polygon()?.let { polygon ->
+                    _uiState.update {
+                        it.copy(
+                            sessionId = session.id,
+                            polygon = polygon,
+                            areaSquareMeters = session.areaSquareMeters,
+                            perimeterMeters = session.perimeterMeters
+                        )
+                    }
+                }
+            } else {
                 _uiState.update {
                     it.copy(
-                        sessionId = session.id,
-                        polygon = polygon,
-                        areaSquareMeters = session.areaSquareMeters,
-                        perimeterMeters = session.perimeterMeters
+                        sessionId = session?.id,
+                        polygon = null,
+                        areaSquareMeters = null,
+                        perimeterMeters = null
                     )
                 }
             }

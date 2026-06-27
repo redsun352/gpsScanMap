@@ -29,4 +29,7 @@ interface ScanSessionDao {
 
     @Query("SELECT * FROM scan_sessions WHERE status = 'RUNNING' OR status = 'PAUSED' LIMIT 1")
     suspend fun getActiveSession(): ScanSessionEntity?
+
+    @Query("SELECT * FROM scan_sessions ORDER BY started_at_millis DESC LIMIT 1")
+    suspend fun getMostRecentSession(): ScanSessionEntity?
 }

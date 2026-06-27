@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,6 +34,14 @@ fun AreaAnalysisScreen(
     viewModel: AreaAnalysisViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Bu ekran her görüntülendiğinde (örn. Walk Scan'de yeni tarama yapılıp
+    // geri dönüldüğünde) en güncel oturumu yeniden yükler. ViewModel Activity
+    // scope'unda paylaşıldığı için init{} bloğu sadece bir kez çalışır;
+    // bu yüzden ekran seviyesinde tekrar tetikleme gerekir.
+    LaunchedEffect(Unit) {
+        viewModel.loadLatestSession()
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Area Analysis") }) },
