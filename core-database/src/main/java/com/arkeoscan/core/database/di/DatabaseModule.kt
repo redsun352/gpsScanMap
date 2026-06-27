@@ -8,6 +8,7 @@ import com.arkeoscan.core.database.dao.CameraSurveyPhotoDao
 import com.arkeoscan.core.database.dao.MagnetometerCalibrationDao
 import com.arkeoscan.core.database.dao.ScanPointDao
 import com.arkeoscan.core.database.dao.ScanSessionDao
+import com.arkeoscan.core.database.dao.SurfaceAnalysisResultDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -52,4 +53,9 @@ object DatabaseModule {
     @Singleton
     fun provideMagnetometerCalibrationDao(db: ArkeoScanDatabase): MagnetometerCalibrationDao =
         db.magnetometerCalibrationDao()
+
+    @Provides
+    @Singleton
+    fun provideSurfaceAnalysisResultDao(db: ArkeoScanDatabase): SurfaceAnalysisResultDao =
+        db.surfaceAnalysisResultDao()
 }
